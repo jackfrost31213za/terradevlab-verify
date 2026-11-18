@@ -14,7 +14,8 @@
   button:disabled { opacity: 0.6; cursor: not-allowed; }
   .code-box { background: #0f111a; border: 1px dashed #86efac; padding: 14px; margin-top: 14px; border-radius: 8px; word-break: break-all; color: #86efac; display: none; text-align: left; font-size: 13px; }
   .copy-btn { background: #334155; color: #fff; margin-top: 10px; }
-  .err { color: #f87171; margin-top: 10px; font-size: 13px; }
+  .err { color: #f87171; margin-top: 10px; font-size: 13px; line-height: 1.45; }
+  .tip { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #334155; font-size: 11.5px; color: #94a3b8; line-height: 1.5; text-align: left; }
 </style>
 </head>
 <body>
@@ -28,17 +29,24 @@
     <div style="color:#94a3b8;margin-bottom:6px;">Verified! Copy this Unlock Code and paste it into your widget:</div>
     <div id="tokenText" style="font-weight:bold;user-select:all;"></div>
     <button class="copy-btn" onclick="copyToken()">Copy Unlock Code</button>
+    <div class="tip">
+      <b>iPad / iPhone Tip:</b> Open <code>cozy-pomodoro-widget.html</code> in <b>Documents by Readdle</b> or <b>HTML Viewer Q</b> so your unlock saves permanently.
+    </div>
   </div>
 </div>
 <script>
 const PRODUCT_ID = 'NMkmlO3xw8s_UJFF4OJVwA==';
 function copyToken() {
   const txt = document.getElementById('tokenText').textContent;
-  navigator.clipboard.writeText(txt).then(() => {
-    const b = document.querySelector('.copy-btn');
-    b.textContent = 'Copied!';
-    setTimeout(() => b.textContent = 'Copy Unlock Code', 1500);
-  });
+  const b = document.querySelector('.copy-btn');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => {
+      b.textContent = 'Copied!';
+      setTimeout(() => b.textContent = 'Copy Unlock Code', 1500);
+    }).catch(() => prompt('Copy this Unlock Code:', txt));
+  } else {
+    prompt('Copy this Unlock Code:', txt);
+  }
 }
 async function verify() {
   const key = document.getElementById('key').value.trim();
@@ -53,7 +61,7 @@ async function verify() {
     const res = await fetch('https://api.gumroad.com/v2/licenses/verify', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Invalid license key.');
-    if (data.purchase?.refunded || data.purchase?.chargebacked) throw new Error('Purchase refunded or disputed.');
+    if (data.purchase && (data.purchase.refunded || data.purchase.chargebacked)) throw new Error('Purchase refunded or disputed.');
     if (typeof data.uses === 'number' && data.uses > 1) throw new Error('This license key has already been used (limit: 1 activation).');
     const token = 'TDL-' + btoa(PRODUCT_ID + ':' + key).replace(/=/g, '');
     document.getElementById('tokenText').textContent = token;
