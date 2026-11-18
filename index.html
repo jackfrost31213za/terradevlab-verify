@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TerraDevLab License Verification</title>
+<title>TerraDevLab License Verification (v5)</title>
 <style>
   body { font-family: monospace; background: #14161f; color: #e2e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 16px; }
   .card { background: #1e2130; border: 2px solid #86efac; border-radius: 16px; padding: 24px; max-width: 440px; width: 100%; box-sizing: border-box; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-  h3 { margin-top: 0; color: #86efac; letter-spacing: 0.5px; }
+  .badge { display: inline-block; background: rgba(134, 239, 172, 0.14); color: #86efac; border: 1px solid #86efac; border-radius: 999px; font-size: 11px; padding: 2px 10px; margin-bottom: 10px; }
+  h3 { margin: 0 0 8px 0; color: #86efac; letter-spacing: 0.5px; }
   input, button { width: 100%; padding: 12px; margin-top: 12px; border-radius: 8px; border: 1px solid #334155; font-family: inherit; font-size: 14px; box-sizing: border-box; }
   input { background: #0f111a; color: #fff; text-align: center; }
   button { background: #86efac; color: #0f111a; font-weight: bold; cursor: pointer; border: none; }
@@ -20,8 +21,9 @@
 </head>
 <body>
 <div class="card">
+  <div class="badge">Portal v5 • Widget v5 Compatible</div>
   <h3>TerraDevLab Activation</h3>
-  <p style="font-size:13px;color:#94a3b8;line-height:1.5;">Enter your Gumroad License Key to generate your offline unlock token for Cozy Pomodoro &amp; Virtual Pet Deluxe.</p>
+  <p style="font-size:13px;color:#94a3b8;line-height:1.5;">Enter your Gumroad License Key to generate your offline unlock code for <strong>Cozy Pomodoro &amp; Virtual Pet Deluxe (v5)</strong>.</p>
   <input id="key" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" autocomplete="off">
   <button id="btn" onclick="verify()">Verify &amp; Get Unlock Code</button>
   <div id="err" class="err"></div>
@@ -49,7 +51,7 @@ function copyToken() {
   }
 }
 async function verify() {
-  const key = document.getElementById('key').value.trim();
+  const key = document.getElementById('key').value.replace(/\s+/g, '');
   const err = document.getElementById('err');
   const out = document.getElementById('out');
   const btn = document.getElementById('btn');
@@ -61,7 +63,7 @@ async function verify() {
     const res = await fetch('https://api.gumroad.com/v2/licenses/verify', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Invalid license key.');
-    if (data.purchase && (data.purchase.refunded || data.purchase.chargebacked)) throw new Error('Purchase refunded or disputed.');
+    if (data.purchase?.refunded || data.purchase?.chargebacked) throw new Error('Purchase refunded or disputed.');
     if (typeof data.uses === 'number' && data.uses > 1) throw new Error('This license key has already been used (limit: 1 activation).');
     const token = 'TDL-' + btoa(PRODUCT_ID + ':' + key).replace(/=/g, '');
     document.getElementById('tokenText').textContent = token;
